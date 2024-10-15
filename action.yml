@@ -1,0 +1,25 @@
+---
+name: 'Generate GH Auth Token'
+description: 'Generate GH Auth Token Action'
+inputs:
+  github_app_pem_file:
+    description: 'github app pem file'
+    required: true
+  github_app_installation_id:
+    description: 'github app installation id'
+    required: true
+  github_base_url:
+    description: 'github base url'
+    required: true
+outputs:
+  github_token:
+    description: 'the generated token.'
+    value: ${{ steps.github_credentials.outputs.GITHUB_TOKEN }}
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup GITHUB Credentials
+      id: github_credentials
+      shell: bash
+      run: |
+        echo GITHUB_TOKEN=$(python ${{ github.action_path }}/encode_jwt.py "${{ inputs.github_app_pem_file }}" "${{ inputs.github_app_installation_id }}" "${{ inputs.github_base_url }}") >> $GITHUB_OUTPUT
