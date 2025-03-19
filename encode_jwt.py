@@ -4,7 +4,7 @@
 #export github_app_private_key="-----BEGIN"
 #export github_app_installation_id=11
 #export github_app_url=https://github.e.it.census.gov
-#export GITHUB_TOKEN=$(python encode_jwt.py "$github_app_private_key" "$github_app_installation_id" "$github_app_url")
+#export GITHUB_TOKEN=$(python encode_jwt.py --private-key "$github_app_private_key" --installation-id "$github_app_installation_id" --enterprise-url "$github_app_url")
 
 import time
 import json
@@ -18,9 +18,10 @@ import sys
 
 # Set up argument parser
 parser = argparse.ArgumentParser(description='Encode JWT with RS256 and get GitHub Enterprise installation access token')
-parser.add_argument('private_key', type=str, help='PEM formatted private key string')
-parser.add_argument('installation_id', type=str, help='GitHub App Installation ID')
-parser.add_argument('enterprise_url', type=str, help='GitHub Enterprise API URL (e.g., https://github.e.it.census.gov)')
+parser.add_argument('--private-key', '-k', type=str, required=True, help='PEM formatted private key string')
+parser.add_argument('--installation-id', '-i', type=str, required=True, help='GitHub App Installation ID')
+parser.add_argument('--enterprise-url', '-u', type=str, required=True, help='GitHub Enterprise API URL (e.g., https://github.e.it.census.gov)')
+parser.add_argument('--app-id', '-a', type=str, default='6', help='GitHub App ID (default: 6)')
 args = parser.parse_args()
 
 # Load the PEM private key
@@ -32,11 +33,11 @@ header = {
     "typ": "JWT"
 }
 
-# JWT Payload
+# JWT Payload - using app_id for issuer, not installation_id
 payload = {
     "iat": int(time.time()),
     "exp": int(time.time()) + (10 * 60),
-    "iss": "6"  # Replace with your actual GitHub App ID
+    "iss": args.app_id
 }
 
 # Encode Header and Payload as Base64
@@ -66,7 +67,13 @@ headers = {
 }
 
 # Make the request to the GitHub Enterprise API to get the installation access token
-url = f"{args.enterprise_url}api/v3/app/installations/{args.installation_id}/access_tokens"
+# Ensure URL has proper formatting with trailing slash
+enterprise_url = args.enterprise_url
+if not enterprise_url.endswith('/'):
+    enterprise_url += '/'
+
+url = f"{enterprise_url}api/v3/app/installations/{args.installation_id}/access_tokens"
+print(f"Requesting token from: {url}", file=sys.stderr)
 response = requests.post(url, headers=headers)
 
 # Check if the request was successful
