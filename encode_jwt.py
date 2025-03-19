@@ -33,12 +33,31 @@ header = {
     "typ": "JWT"
 }
 
+# Before creating the JWT, check server time
+meta_url = f"{enterprise_url}api/v3/meta"
+try:
+    meta_response = requests.get(meta_url)
+    if 'date' in meta_response.headers:
+        server_time = time.mktime(time.strptime(meta_response.headers['date'], '%a, %d %b %Y %H:%M:%S %Z'))
+        time_diff = abs(server_time - time.time())
+        print(f"Debug - Server time: {time.ctime(server_time)}", file=sys.stderr)
+        print(f"Debug - Time difference with server: {time_diff:.2f} seconds", file=sys.stderr)
+        if time_diff > 30:  # If time difference is more than 30 seconds
+            print(f"Warning - Large time difference detected with server ({time_diff:.2f} seconds)", file=sys.stderr)
+except Exception as e:
+    print(f"Warning - Could not check server time: {str(e)}", file=sys.stderr)
+
 # JWT Payload - using app_id for issuer, not installation_id
+current_time = int(time.time())
+expiration_time = current_time + (10 * 60)  # Back to 10 minutes
 payload = {
-    "iat": int(time.time()),
-    "exp": int(time.time()) + (10 * 60),
+    "iat": current_time,
+    "exp": expiration_time,
     "iss": args.app_id
 }
+
+print(f"Debug - Current time: {time.ctime(current_time)}", file=sys.stderr)
+print(f"Debug - Expiration time: {time.ctime(expiration_time)}", file=sys.stderr)
 
 # Encode Header and Payload as Base64
 header_encoded = base64.urlsafe_b64encode(json.dumps(header).encode()).decode().rstrip("=")
