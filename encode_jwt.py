@@ -24,6 +24,11 @@ parser.add_argument('--enterprise-url', '-u', type=str, required=True, help='Git
 parser.add_argument('--app-id', '-a', type=str, default='6', help='GitHub App ID (default: 6)')
 args = parser.parse_args()
 
+# Ensure URL has proper formatting with trailing slash
+enterprise_url = args.enterprise_url
+if not enterprise_url.endswith('/'):
+    enterprise_url += '/'
+
 # Load the PEM private key
 private_key = load_pem_private_key(args.private_key.encode(), password=None)
 
@@ -86,11 +91,6 @@ headers = {
 }
 
 # Make the request to the GitHub Enterprise API to get the installation access token
-# Ensure URL has proper formatting with trailing slash
-enterprise_url = args.enterprise_url
-if not enterprise_url.endswith('/'):
-    enterprise_url += '/'
-
 url = f"{enterprise_url}api/v3/app/installations/{args.installation_id}/access_tokens"
 print(f"Requesting token from: {url}", file=sys.stderr)
 response = requests.post(url, headers=headers)

@@ -8,9 +8,6 @@ inputs:
   github_app_installation_id:
     description: 'github app installation id'
     required: true
-  github_base_url:
-    description: 'github base url'
-    required: true
   github_app_id:
     description: 'github app id'
     required: false
@@ -26,4 +23,4 @@ runs:
       id: github_credentials
       shell: bash
       run: |
-        echo GITHUB_TOKEN=$(python ${{ github.action_path }}/encode_jwt.py --private-key "${{ inputs.github_app_pem_file }}" --installation-id "${{ inputs.github_app_installation_id }}" --enterprise-url "${{ inputs.github_base_url }}" --app-id "${{ inputs.github_app_id }}") >> $GITHUB_OUTPUT
+        echo GITHUB_TOKEN=$(python ${{ github.action_path }}/encode_jwt.py --private-key "${{ inputs.github_app_pem_file }}" --installation-id "${{ inputs.github_app_installation_id }}" --enterprise-url "${{ github.server_url }}" --app-id "${{ inputs.github_app_id }}") >> $GITHUB_OUTPUT
