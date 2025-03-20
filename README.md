@@ -66,6 +66,62 @@ jobs:
                "$GITHUB_SERVER_URL/api/v3/repos/owner/repo/contents"
 ```
 
+## GitHub App Setup
+
+### 1. Create a GitHub App
+1. Go to your GitHub Enterprise Server Organization Settings
+2. Navigate to `Developer Settings` > `GitHub Apps` > `New GitHub App`
+3. Fill in the required information:
+   - **GitHub App Name**: Choose a descriptive name (e.g., "Terraform Automation App")
+   - **Homepage URL**: Your organization's URL or repository URL
+   - **Webhook**: Disable webhook (uncheck "Active")
+   
+### 2. Set Permissions
+Configure the following permissions based on your needs:
+- **Repository Permissions**:
+  - Contents: Read & write
+  - Metadata: Read-only
+  - Pull requests: Read & write (if needed)
+  - Workflows: Read & write (if needed)
+- **Organization Permissions**:
+  - Members: Read-only
+  - Projects: Read-only
+
+### 3. Generate Private Key
+1. After creating the app, scroll to the "Private keys" section
+2. Click "Generate a private key"
+3. Save the downloaded .pem file securely
+4. Convert the key to a single line format if needed:
+   ```bash
+   awk 'NF {sub(/\r/, ""); printf "%s\\n",$0;}' your-private-key.pem
+   ```
+
+### 4. Install the App
+1. Navigate to the "Install App" tab
+2. Choose the organization where you want to install the app
+3. Select the repositories you want the app to access
+4. Complete the installation
+
+### 5. Gather Required Information
+You'll need these values for the action:
+1. **App ID**: Found on the app's settings page
+2. **Installation ID**: Found in the URL when viewing the app's installation
+   (e.g., `.../github-apps/your-app/installations/123` - here 123 is the installation ID)
+3. **Private Key**: The .pem file you downloaded
+
+### 6. Configure Action Secrets
+Add the following secrets to your GitHub repository or organization:
+1. `GITHUB_APP_PRIVATE_KEY`: The contents of your .pem file
+2. `GITHUB_APP_INSTALLATION_ID`: The installation ID from step 5
+3. (Optional) `GITHUB_APP_ID`: The App ID from step 5 if different from default '6'
+
+### Security Best Practices
+1. Generate a new private key if the existing one is compromised
+2. Regularly rotate private keys (recommended every 60-90 days)
+3. Grant only the minimum required permissions
+4. Restrict app installation to specific repositories
+5. Monitor app activity in organization audit logs
+
 ## Technical Details
 
 ### JWT Token Generation
@@ -123,6 +179,11 @@ If you encounter issues:
 3. **App ID issues**: If you're not using the default App ID, make sure to provide the correct `github_app_id`
 4. **Time synchronization errors**: Check for significant time differences between your runner and GitHub server
 5. **SSL/TLS errors**: Ensure proper CA certificates are available (export REQUESTS_CA_BUNDLE if needed)
+6. **Installation errors**:
+   - Verify the app is properly installed on the target repository
+   - Check if the installation ID matches the repository's installation
+   - Ensure the private key hasn't expired
+   - Confirm the app has the required permissions
 
 ## Debug Mode
 
