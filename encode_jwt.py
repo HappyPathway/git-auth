@@ -54,7 +54,7 @@ except Exception as e:
 
 # JWT Payload - using app_id for issuer, not installation_id
 current_time = int(time.time())
-expiration_time = current_time + (10 * 60)  # Back to 10 minutes
+expiration_time = current_time + (9 * 60)  # Set 9 minutes in the future in case of drift
 payload = {
     "iat": current_time,
     "exp": expiration_time,
