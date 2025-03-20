@@ -58,7 +58,7 @@ expiration_time = current_time + (9 * 60)  # Set 9 minutes in the future in case
 payload = {
     "iat": current_time,
     "exp": expiration_time,
-    "iss": args.app_id
+    "iss": 6
 }
 
 print(f"Debug - Current time: {time.ctime(current_time)}", file=sys.stderr)
